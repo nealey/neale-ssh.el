@@ -1,0 +1,47 @@
+(put 'neale/remote-filename 'permanent-local t)
+(put 'neale/remote-comint-buffer 'permanent-local t)
+
+(defun neale/remote-edit (filename)
+  (interactive "sFilename: ")
+  (let ((output-buffer (generate-new-buffer-name (format "remote:%s" (file-name-nondirectory filename))))
+	 (command (format "base64 %s" filename))
+	 (comint-buffer (current-buffer)))
+    (comint-redirect-send-command command output-buffer nil)
+    ;; Wait for it to finish
+    (while (null comint-redirect-completed)
+      (sleep-for 0.1))
+    (with-current-buffer output-buffer
+      (setq-local neale/remote-filename filename)
+      (setq-local neale/remote-comint-buffer comint-buffer)
+      (base64-decode-region (point-min) (point-max))
+      (normal-mode)
+      (local-set-key (kbd "C-c C-c") 'neale/remote-write))
+    (message "Loaded")))
+
+;; (defun neale/remote-write ()
+;;   (interactive)
+;;   (let ((process (get-buffer-process neale/remote-comint-buffer))
+;; 	(filename neale/remote-filename)
+;; 	(base64-text (base64-encode-string (buffer-string))))
+;;     (with-current-buffer neale/remote-comint-buffer
+;;       (comint-send-string process (format "base64 -d > %s <<'@EOD'\n" filename))
+;;       (comint-send-string process base64-text)
+;;       (comint-send-string process "\n@EOD\n"))
+;;     (message "Buffer written to %s " neale/remote-comint-buffer))))
+
+(defun neale/remote-write ()
+  (interactive)
+  (let* ((process (get-buffer-process neale/remote-comint-buffer))
+	 (filename neale/remote-filename)
+	 (text (buffer-string))
+	 (base64-text (base64-encode-string text)))
+    (with-current-buffer neale/remote-comint-buffer
+      (comint-send-string process (format "echo ==%s\n" filename))
+      (comint-send-string process (format "ed %s\n" filename))
+      (comint-send-string process ",d\n")
+      (comint-send-string process "a\n")
+      (comint-send-string process text)
+      (comint-send-string process ".\n")
+      (sleep-for 0.2) ; *sigh*
+      (comint-send-string process "wq\n"))
+    (message "Buffer written to %s " neale/remote-comint-buffer)))
