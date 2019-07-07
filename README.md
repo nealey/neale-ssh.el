@@ -37,6 +37,23 @@ Why You Should Not Use This
 * You love using `more` and `less` more than you love using `cat` and Emacs built-in navigation
 
 
+What's wrong with TRAMP?
+========================
+
+Nothing's wrong with TRAMP.
+But in my job, I frequently have to be three or four shells deep,
+sometimes with login methods that TRAMP doesn't support.
+This lets me stop having to care about TRAMP,
+and just do what I'd do with an xterm
+(but with all the benefits for high-latency connections and history mentioned above).
+For instance:
+
+1. ssh host-a
+2. ipmi host-b sol activate
+3. open bizarre proprietary shell on host-c
+4. edit a file
+
+
 How To Use This
 ========
 Drop it somewhere that you can load it up.
@@ -86,5 +103,5 @@ I've been trying to get some key bindings set up that will:
 
 But I'm having quite a bit of trouble with Emacs dropping characters for some reason.
 If you're interested in helping,
-have a look at [neale-comint-edit.el](neale-comint-edit) and see what you can twiddle out of it.
+have a look at [neale-comint-edit.el](neale-comint-edit.el) and see what you can twiddle out of it.
 
